@@ -1,8 +1,9 @@
-FLUTTER := flutter
-ADB     := adb
-
-# Pick the first connected Android device dynamically
-DEVICE  := $(shell $(ADB) devices -l 2>/dev/null | awk 'NR>1 && /device /{print $$1; exit}')
+FLUTTER      := flutter
+ADB          := adb
+DEVICE       := $(shell $(ADB) devices -l 2>/dev/null | awk 'NR>1 && /device /{print $$1; exit}')
+DEFINES      := --dart-define=BUILD_HASH=$(shell git rev-parse --short HEAD) --dart-define=BUILD_DATE=$(shell date +%Y-%m-%d)
+BUILD_NAME   := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
+BUILD_NUMBER := $(shell git rev-list --count HEAD)
 
 .PHONY: run run-linux \
         build build-arm64 build-arm32 build-x64 build-x86 build-all build-split \
@@ -37,33 +38,54 @@ run:
 		echo "No Android device connected. Connect a device or run: make run-linux"; \
 		exit 1; \
 	fi
-	$(FLUTTER) run -d $(DEVICE)
+	$(FLUTTER) run -d $(DEVICE) $(DEFINES)
 
 run-linux:
-	$(FLUTTER) run -d linux
+	$(FLUTTER) run -d linux $(DEFINES)
 
 build: build-arm64
 
 build-arm64:
-	$(FLUTTER) build apk --target-platform android-arm64
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build apk --release --target-platform android-arm64 $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 build-arm32:
-	$(FLUTTER) build apk --target-platform android-arm
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build apk --release --target-platform android-arm $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 build-x64:
-	$(FLUTTER) build apk --target-platform android-x64
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build apk --release --target-platform android-x64 $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 build-x86:
-	$(FLUTTER) build apk --target-platform android-x86
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build apk --release --target-platform android-x86 $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 build-all:
-	$(FLUTTER) build apk --target-platform android-arm64,android-arm,android-x64
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build apk --release --target-platform android-arm64,android-arm,android-x64 $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 build-split:
-	$(FLUTTER) build apk --split-per-abi
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build apk --release --split-per-abi $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 build-appbundle:
-	$(FLUTTER) build appbundle
+	@echo "build-name:   $(BUILD_NAME)"
+	@echo "build-number: $(BUILD_NUMBER)"
+	$(FLUTTER) build appbundle $(DEFINES) \
+		--build-name=$(BUILD_NAME) --build-number=$(BUILD_NUMBER)
 
 install:
 	@if [ -z "$(DEVICE)" ]; then \
