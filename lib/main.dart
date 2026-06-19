@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'site_config.dart';
 import 'site_icon.dart';
+import 'site_edit_dialog.dart';
 import 'settings_page.dart';
 
 void main() {
@@ -75,6 +77,7 @@ class _HomePageState extends State<HomePage> {
   static const _mobileUserAgent =
       'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
+  static const _shareChannel = MethodChannel('net.cheack.tabik/share');
 
   List<CategoryConfig> _categories = [];
   int _categoryIndex = 0;
@@ -87,6 +90,70 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadCategories();
+    _shareChannel.setMethodCallHandler((call) async {
+      if (call.method == 'sharedUrl') _handleSharedUrl(call.arguments as String?);
+    });
+  }
+
+  Future<void> _checkPendingShare() async {
+    final url = await _shareChannel.invokeMethod<String>('getSharedUrl');
+    if (url != null && url.isNotEmpty) _handleSharedUrl(url);
+  }
+
+  void _handleSharedUrl(String? url) {
+    if (url == null || url.isEmpty || !mounted) return;
+    _showAddFromShareDialog(url);
+  }
+
+  void _showAddFromShareDialog(String sharedUrl) async {
+    if (_categories.isEmpty || !mounted) return;
+    int selectedCategory = _categoryIndex;
+
+    // Выбор категории поверх диалога сайта
+    final cat = await showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        int picked = selectedCategory;
+        return StatefulBuilder(
+          builder: (ctx, setSt) => AlertDialog(
+            title: const Text('Категория'),
+            content: DropdownButtonFormField<int>(
+              initialValue: picked,
+              decoration: const InputDecoration(labelText: 'Категория'),
+              items: [
+                for (int i = 0; i < _categories.length; i++)
+                  DropdownMenuItem(value: i, child: Text(_categories[i].label)),
+              ],
+              onChanged: (v) => setSt(() => picked = v!),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+              TextButton(onPressed: () => Navigator.pop(ctx, picked), child: const Text('Далее')),
+            ],
+          ),
+        );
+      },
+    );
+    if (cat == null || !mounted) return;
+    selectedCategory = cat;
+
+    final site = await showSiteEditDialog(context, initialUrl: sharedUrl);
+    if (site == null || !mounted) return;
+
+    setState(() {
+      _categories = List<CategoryConfig>.of(_categories);
+      _categories[selectedCategory] = _categories[selectedCategory].copyWith(
+        sites: [..._categories[selectedCategory].sites, site],
+      );
+      if (selectedCategory == _categoryIndex) {
+        _controllers.add(WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setUserAgent(_mobileUserAgent)
+          ..loadRequest(_parseUrl(site.url)));
+        _loading.add(true);
+      }
+    });
+    _saveCategories();
   }
 
   Future<void> _loadCategories() async {
@@ -94,6 +161,7 @@ class _HomePageState extends State<HomePage> {
     final json = prefs.getString(_prefsKey);
     final cats = json != null ? CategoryConfig.decodeList(json) : defaultCategories;
     _applyCategories(cats, categoryIndex: 0);
+    _checkPendingShare();
   }
 
   Future<void> _saveCategories() async {
