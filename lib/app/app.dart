@@ -12,7 +12,7 @@ class TabikApp extends StatefulWidget {
 
 class _TabikAppState extends State<TabikApp> {
   static const _themeKey = 'theme_mode';
-  ThemeMode _themeMode = ThemeMode.dark;
+  ThemeMode _themeMode = ThemeMode.system;
 
   @override
   void initState() {
@@ -37,7 +37,7 @@ class _TabikAppState extends State<TabikApp> {
   ThemeMode _parseTheme(String value) => switch (value) {
     'light' => ThemeMode.light,
     'system' => ThemeMode.system,
-    _ => ThemeMode.dark,
+    _ => ThemeMode.system,
   };
 
   @override

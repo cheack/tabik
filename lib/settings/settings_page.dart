@@ -178,6 +178,22 @@ class _SettingsPageState extends State<SettingsPage> {
               _categories.insert(newIndex, item);
             });
           },
+          footer: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Center(
+              child: OutlinedButton.icon(
+                onPressed: _addCategory,
+                icon: const Icon(Icons.add),
+                label: const Text('Добавить категорию'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+          ),
           children: [
             for (int i = 0; i < _categories.length; i++)
               ListTile(
@@ -204,10 +220,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: () => _openSites(i),
               ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _addCategory,
-          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -286,6 +298,22 @@ class _SitesPageState extends State<_SitesPage> {
               _sites.insert(newIndex, item);
             });
           },
+          footer: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Center(
+              child: OutlinedButton.icon(
+                onPressed: () => _showEditDialog(),
+                icon: const Icon(Icons.add),
+                label: const Text('Добавить вкладку'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+          ),
           children: [
             for (int i = 0; i < _sites.length; i++)
               ListTile(
@@ -321,10 +349,6 @@ class _SitesPageState extends State<_SitesPage> {
                 ),
               ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showEditDialog(),
-          child: const Icon(Icons.add),
         ),
       ),
     );
