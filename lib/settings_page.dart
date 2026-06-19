@@ -237,28 +237,34 @@ class _SitesPageState extends State<_SitesPage> {
                 child: Text('Иконка', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: allIcons.map((icon) {
-                  final selected = icon == selectedIcon;
-                  return GestureDetector(
-                    onTap: () => setDialogState(() => selectedIcon = icon),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: selected
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade600,
+              SizedBox(
+                height: 200,
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allIcons.map((icon) {
+                      final selected = icon == selectedIcon;
+                      return GestureDetector(
+                        onTap: () => setDialogState(() => selectedIcon = icon),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                          child: Icon(icon, size: 24,
+                              color: selected ? Colors.white : null),
                         ),
-                      ),
-                      child: Icon(icon, size: 24,
-                          color: selected ? Colors.white : Colors.grey.shade300),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ],
           ),
