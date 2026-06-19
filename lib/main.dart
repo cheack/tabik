@@ -13,6 +13,9 @@ void main() {
   runApp(const TabikApp());
 }
 
+int siteIndexAfterRemoval(int removedIndex) =>
+    removedIndex > 0 ? removedIndex - 1 : 0;
+
 class TabikApp extends StatefulWidget {
   const TabikApp({super.key});
 
@@ -45,10 +48,10 @@ class _TabikAppState extends State<TabikApp> {
   }
 
   ThemeMode _parseTheme(String value) => switch (value) {
-        'light' => ThemeMode.light,
-        'system' => ThemeMode.system,
-        _ => ThemeMode.dark,
-      };
+    'light' => ThemeMode.light,
+    'system' => ThemeMode.system,
+    _ => ThemeMode.dark,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +70,11 @@ class HomePage extends StatefulWidget {
   final ThemeMode themeMode;
   final void Function(ThemeMode) onThemeChanged;
 
-  const HomePage({super.key, required this.themeMode, required this.onThemeChanged});
+  const HomePage({
+    super.key,
+    required this.themeMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -92,7 +99,9 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadCategories();
     _shareChannel.setMethodCallHandler((call) async {
-      if (call.method == 'sharedUrl') _handleSharedUrl(call.arguments as String?);
+      if (call.method == 'sharedUrl') {
+        _handleSharedUrl(call.arguments as String?);
+      }
     });
   }
 
@@ -128,8 +137,14 @@ class _HomePageState extends State<HomePage> {
               onChanged: (v) => setSt(() => picked = v!),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
-              TextButton(onPressed: () => Navigator.pop(ctx, picked), child: const Text('Далее')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Отмена'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, picked),
+                child: const Text('Далее'),
+              ),
             ],
           ),
         );
@@ -147,10 +162,12 @@ class _HomePageState extends State<HomePage> {
         sites: [..._categories[selectedCategory].sites, site],
       );
       if (selectedCategory == _categoryIndex) {
-        _controllers.add(WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setUserAgent(_mobileUserAgent)
-          ..loadRequest(_parseUrl(site.url)));
+        _controllers.add(
+          WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setUserAgent(_mobileUserAgent)
+            ..loadRequest(_parseUrl(site.url)),
+        );
         _loading.add(true);
       }
     });
@@ -160,7 +177,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadCategories() async {
     final prefs = await SharedPreferences.getInstance();
     final json = prefs.getString(_prefsKey);
-    final cats = json != null ? CategoryConfig.decodeList(json) : defaultCategories;
+    final cats = json != null
+        ? CategoryConfig.decodeList(json)
+        : defaultCategories;
     _applyCategories(cats, categoryIndex: 0);
     _checkPendingShare();
   }
@@ -179,7 +198,7 @@ class _HomePageState extends State<HomePage> {
     _buildControllers();
   }
 
-  void _buildControllers() {
+  void _buildControllers({int siteIndex = 0}) {
     final sites = _categories[_categoryIndex].sites;
     final loading = List.filled(sites.length, true);
     final controllers = <WebViewController>[];
@@ -189,11 +208,13 @@ class _HomePageState extends State<HomePage> {
       final ctrl = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setUserAgent(_mobileUserAgent)
-        ..setNavigationDelegate(NavigationDelegate(
-          onPageStarted: (_) => _setLoading(index, true),
-          onPageFinished: (_) => _setLoading(index, false),
-          onWebResourceError: (_) => _setLoading(index, false),
-        ))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (_) => _setLoading(index, true),
+            onPageFinished: (_) => _setLoading(index, false),
+            onWebResourceError: (_) => _setLoading(index, false),
+          ),
+        )
         ..loadRequest(_parseUrl(sites[i].url));
       controllers.add(ctrl);
     }
@@ -201,7 +222,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _controllers = controllers;
       _loading = loading;
-      _siteIndex = 0;
+      _siteIndex = sites.isEmpty ? 0 : siteIndex.clamp(0, sites.length - 1);
     });
   }
 
@@ -235,9 +256,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showSiteActions(int siteIndex, Offset position) async {
-    final sites = _categories[_categoryIndex].sites;
-    final site = sites[siteIndex];
-    final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final site = _categories[_categoryIndex].sites[siteIndex];
+    final overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
     final rect = RelativeRect.fromRect(
       Rect.fromCenter(center: position, width: 0, height: 0),
       Offset.zero & overlay.size,
@@ -247,13 +268,29 @@ class _HomePageState extends State<HomePage> {
       context: context,
       position: rect,
       items: [
-        PopupMenuItem(value: 'edit', child: Row(children: [
-          const Icon(Icons.edit, size: 20), const SizedBox(width: 12), Text('Изменить «${site.label}»'),
-        ])),
-        PopupMenuItem(value: 'delete', child: Row(children: [
-          const Icon(Icons.delete, size: 20, color: Colors.red), const SizedBox(width: 12),
-          Text('Удалить «${site.label}»', style: const TextStyle(color: Colors.red)),
-        ])),
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              const Icon(Icons.edit, size: 20),
+              const SizedBox(width: 12),
+              Text('Изменить «${site.label}»'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              const Icon(Icons.delete, size: 20, color: Colors.red),
+              const SizedBox(width: 12),
+              Text(
+                'Удалить «${site.label}»',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
+        ),
       ],
     );
 
@@ -262,35 +299,57 @@ class _HomePageState extends State<HomePage> {
     if (action == 'edit') {
       final updated = await showSiteEditDialog(context, existing: site);
       if (updated == null || !mounted) return;
+      var didUpdate = false;
       setState(() {
-        final newSites = List<SiteConfig>.of(sites);
-        newSites[siteIndex] = updated;
+        final currentSites = _categories[_categoryIndex].sites;
+        final currentIndex = currentSites.indexOf(site);
+        if (currentIndex < 0) return;
+        final newSites = List<SiteConfig>.of(currentSites);
+        newSites[currentIndex] = updated;
         _categories = List<CategoryConfig>.of(_categories);
-        _categories[_categoryIndex] = _categories[_categoryIndex].copyWith(sites: newSites);
-        _controllers[siteIndex].loadRequest(_parseUrl(updated.url));
+        _categories[_categoryIndex] = _categories[_categoryIndex].copyWith(
+          sites: newSites,
+        );
+        _controllers[currentIndex].loadRequest(_parseUrl(updated.url));
+        didUpdate = true;
       });
-      _saveCategories();
+      if (didUpdate) _saveCategories();
     } else if (action == 'delete') {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           content: Text('Удалить «${site.label}»?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Удалить')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Удалить'),
+            ),
           ],
         ),
       );
       if (ok != true || !mounted) return;
+      var didDelete = false;
       setState(() {
-        final newSites = List<SiteConfig>.of(sites)..removeAt(siteIndex);
+        final currentSites = _categories[_categoryIndex].sites;
+        final currentIndex = currentSites.indexOf(site);
+        if (currentIndex < 0) return;
+        final newSites = List<SiteConfig>.of(currentSites)
+          ..removeAt(currentIndex);
+        _siteIndex = siteIndexAfterRemoval(currentIndex);
         _categories = List<CategoryConfig>.of(_categories);
-        _categories[_categoryIndex] = _categories[_categoryIndex].copyWith(sites: newSites);
-        _controllers.removeAt(siteIndex);
-        _loading.removeAt(siteIndex);
-        _siteIndex = _siteIndex.clamp(0, newSites.isEmpty ? 0 : newSites.length - 1);
+        _categories[_categoryIndex] = _categories[_categoryIndex].copyWith(
+          sites: newSites,
+        );
+        didDelete = true;
       });
-      _saveCategories();
+      if (didDelete) {
+        _buildControllers(siteIndex: _siteIndex);
+        _saveCategories();
+      }
     }
   }
 
@@ -322,8 +381,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text('Категории',
-                    style: TextStyle(fontSize: 13, color: Colors.grey)),
+                child: Text(
+                  'Категории',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
               ),
               Flexible(
                 child: ListView.builder(
@@ -370,8 +431,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     final sites = _categories[_categoryIndex].sites;
-    final isLoading = _loading.isNotEmpty && _loading[_siteIndex];
-
     if (sites.isEmpty) {
       return Scaffold(
         body: Center(
@@ -380,8 +439,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Icon(Icons.layers_clear, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
-              const Text('Нет вкладок в этой категории',
-                  style: TextStyle(color: Colors.grey)),
+              const Text(
+                'Нет вкладок в этой категории',
+                style: TextStyle(color: Colors.grey),
+              ),
               const SizedBox(height: 24),
               TextButton.icon(
                 onPressed: _showMenu,
@@ -394,12 +455,27 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    final activeSiteIndex = _siteIndex.clamp(0, sites.length - 1);
+    final activeControllerIndex = _controllers.isEmpty
+        ? 0
+        : activeSiteIndex.clamp(0, _controllers.length - 1);
+    final isLoading =
+        _loading.isNotEmpty &&
+        activeControllerIndex < _loading.length &&
+        _loading[activeControllerIndex];
+
+    if (_siteIndex != activeSiteIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _siteIndex = activeSiteIndex);
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       body: Stack(
         children: [
           IndexedStack(
-            index: _siteIndex,
+            index: activeControllerIndex,
             children: _controllers
                 .map((ctrl) => WebViewWidget(controller: ctrl))
                 .toList(),
@@ -415,7 +491,7 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: _BottomBar(
         sites: sites,
-        selectedIndex: _siteIndex,
+        selectedIndex: activeSiteIndex,
         onTap: (i) {
           if (i == sites.length) {
             _showMenu();
@@ -447,7 +523,10 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final items = [...sites.asMap().entries.map((e) => (e.key, e.value)), (sites.length, null)];
+    final items = [
+      ...sites.asMap().entries.map((e) => (e.key, e.value)),
+      (sites.length, null),
+    ];
 
     return NavigationBarTheme(
       data: NavigationBarThemeData(
@@ -468,36 +547,53 @@ class _BottomBar extends StatelessWidget {
                 final isSelected = i == selectedIndex;
                 final isSite = site != null;
                 return Expanded(
-                  key: ValueKey(isSite ? site.url : 'menu'),
+                  key: isSite ? ObjectKey(site) : const ValueKey('menu'),
                   child: RawGestureDetector(
                     behavior: HitTestBehavior.opaque,
                     gestures: {
-                      TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-                        () => TapGestureRecognizer(),
-                        (r) => r.onTap = () => onTap(i),
-                      ),
-                      if (isSite) LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
-                        () => LongPressGestureRecognizer(duration: const Duration(milliseconds: 200)),
-                        (r) => r.onLongPressStart = (d) {
-                          HapticFeedback.mediumImpact();
-                          onLongPress(i, d.globalPosition);
-                        },
-                      ),
+                      TapGestureRecognizer:
+                          GestureRecognizerFactoryWithHandlers<
+                            TapGestureRecognizer
+                          >(
+                            () => TapGestureRecognizer(),
+                            (r) => r.onTap = () => onTap(i),
+                          ),
+                      if (isSite)
+                        LongPressGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              LongPressGestureRecognizer
+                            >(
+                              () => LongPressGestureRecognizer(
+                                duration: const Duration(milliseconds: 200),
+                              ),
+                              (r) => r.onLongPressStart = (d) {
+                                HapticFeedback.mediumImpact();
+                                onLongPress(i, d.globalPosition);
+                              },
+                            ),
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? colorScheme.secondaryContainer : Colors.transparent,
+                            color: isSelected
+                                ? colorScheme.secondaryContainer
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: isSite
                               ? SiteIcon(site: site, size: 24)
-                              : Icon(Icons.more_vert, size: 24,
-                                  color: colorScheme.onSurfaceVariant),
+                              : Icon(
+                                  Icons.more_vert,
+                                  size: 24,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                         ),
                         const SizedBox(height: 4),
                         Text(
