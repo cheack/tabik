@@ -37,6 +37,7 @@ class _HomePageState extends State<HomePage> {
 
   List<WebViewController> _controllers = [];
   List<bool> _loading = [];
+  DateTime? _lastBackPress;
 
   @override
   void initState() {
@@ -286,6 +287,30 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _onBackPressed() async {
+    if (_controllers.isNotEmpty && _siteIndex < _controllers.length) {
+      if (await _controllers[_siteIndex].canGoBack()) {
+        await _controllers[_siteIndex].goBack();
+        return;
+      }
+    }
+    final now = DateTime.now();
+    if (_lastBackPress != null &&
+        now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+      SystemNavigator.pop();
+      return;
+    }
+    _lastBackPress = now;
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Нажмите ещё раз для выхода'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _openSettings() {
     Navigator.push(
       context,
@@ -359,6 +384,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onBackPressed();
+      },
+      child: _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     if (_categories.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
