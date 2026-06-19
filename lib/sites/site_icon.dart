@@ -30,8 +30,14 @@ Future<String?> resolveFavicon(String siteUrl) async {
       await resp.drain<void>();
       final html = String.fromCharCodes(bytes);
       for (final pattern in [
-        RegExp(r'''<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["']''', caseSensitive: false),
-        RegExp(r'''<link[^>]+href=["']([^"']+)["'][^>]*rel=["'](?:shortcut )?icon["']''', caseSensitive: false),
+        RegExp(
+          r'''<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["']''',
+          caseSensitive: false,
+        ),
+        RegExp(
+          r'''<link[^>]+href=["']([^"']+)["'][^>]*rel=["'](?:shortcut )?icon["']''',
+          caseSensitive: false,
+        ),
       ]) {
         final m = pattern.firstMatch(html);
         if (m != null) {

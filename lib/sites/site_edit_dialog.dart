@@ -9,7 +9,9 @@ Future<SiteConfig?> showSiteEditDialog(
   String? initialUrl,
 }) {
   final labelCtrl = TextEditingController(text: existing?.label ?? '');
-  final urlCtrl = TextEditingController(text: existing?.url ?? initialUrl ?? '');
+  final urlCtrl = TextEditingController(
+    text: existing?.url ?? initialUrl ?? '',
+  );
   IconData selectedIcon = existing?.icon ?? allIcons.first;
   String? faviconUrl = existing?.faviconUrl;
   bool useFavicon = existing?.faviconUrl != null;
@@ -18,11 +20,17 @@ Future<SiteConfig?> showSiteEditDialog(
 
   void fetchFavicon(String url, void Function(void Function()) setDialogState) {
     debounce?.cancel();
-    setDialogState(() { faviconLoading = url.isNotEmpty; faviconUrl = null; });
+    setDialogState(() {
+      faviconLoading = url.isNotEmpty;
+      faviconUrl = null;
+    });
     if (url.isEmpty) return;
     debounce = Timer(const Duration(milliseconds: 800), () async {
       final resolved = await resolveFavicon(url);
-      setDialogState(() { faviconUrl = resolved; faviconLoading = false; });
+      setDialogState(() {
+        faviconUrl = resolved;
+        faviconLoading = false;
+      });
     });
   }
 
@@ -46,12 +54,17 @@ Future<SiteConfig?> showSiteEditDialog(
                 controller: urlCtrl,
                 decoration: const InputDecoration(labelText: 'URL'),
                 keyboardType: TextInputType.url,
-                onChanged: useFavicon ? (v) => fetchFavicon(v, setDialogState) : null,
+                onChanged: useFavicon
+                    ? (v) => fetchFavicon(v, setDialogState)
+                    : null,
               ),
               const SizedBox(height: 16),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Иконка', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                child: Text(
+                  'Иконка',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ),
               const SizedBox(height: 8),
               SegmentedButton<bool>(
@@ -62,7 +75,9 @@ Future<SiteConfig?> showSiteEditDialog(
                 selected: {useFavicon},
                 onSelectionChanged: (s) {
                   useFavicon = s.first;
-                  if (useFavicon && faviconUrl == null) fetchFavicon(urlCtrl.text, setDialogState);
+                  if (useFavicon && faviconUrl == null) {
+                    fetchFavicon(urlCtrl.text, setDialogState);
+                  }
                   setDialogState(() {});
                 },
               ),
@@ -73,9 +88,17 @@ Future<SiteConfig?> showSiteEditDialog(
                   child: faviconLoading
                       ? const CircularProgressIndicator(strokeWidth: 2)
                       : faviconUrl != null
-                          ? Image.network(faviconUrl!, width: 40, height: 40,
-                              errorBuilder: (_, e, s) => const Icon(Icons.broken_image, size: 40))
-                          : const Text('Введите URL', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      ? Image.network(
+                          faviconUrl!,
+                          width: 40,
+                          height: 40,
+                          errorBuilder: (_, e, s) =>
+                              const Icon(Icons.broken_image, size: 40),
+                        )
+                      : const Text(
+                          'Введите URL',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
                 )
               else
                 SizedBox(
@@ -87,11 +110,14 @@ Future<SiteConfig?> showSiteEditDialog(
                       children: allIcons.map((icon) {
                         final selected = icon == selectedIcon;
                         return GestureDetector(
-                          onTap: () => setDialogState(() => selectedIcon = icon),
+                          onTap: () =>
+                              setDialogState(() => selectedIcon = icon),
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: selected ? Theme.of(ctx).colorScheme.primary : Colors.transparent,
+                              color: selected
+                                  ? Theme.of(ctx).colorScheme.primary
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: selected
@@ -99,7 +125,11 @@ Future<SiteConfig?> showSiteEditDialog(
                                     : Colors.grey.shade600,
                               ),
                             ),
-                            child: Icon(icon, size: 24, color: selected ? Colors.white : null),
+                            child: Icon(
+                              icon,
+                              size: 24,
+                              color: selected ? Colors.white : null,
+                            ),
                           ),
                         );
                       }).toList(),
@@ -111,7 +141,10 @@ Future<SiteConfig?> showSiteEditDialog(
         ),
         actions: [
           TextButton(
-            onPressed: () { debounce?.cancel(); Navigator.pop(ctx); },
+            onPressed: () {
+              debounce?.cancel();
+              Navigator.pop(ctx);
+            },
             child: const Text('Отмена'),
           ),
           TextButton(
@@ -120,12 +153,15 @@ Future<SiteConfig?> showSiteEditDialog(
               final url = urlCtrl.text.trim();
               if (label.isEmpty || url.isEmpty) return;
               debounce?.cancel();
-              Navigator.pop(ctx, SiteConfig(
-                label: label,
-                url: url,
-                icon: selectedIcon,
-                faviconUrl: useFavicon ? faviconUrl : null,
-              ));
+              Navigator.pop(
+                ctx,
+                SiteConfig(
+                  label: label,
+                  url: url,
+                  icon: selectedIcon,
+                  faviconUrl: useFavicon ? faviconUrl : null,
+                ),
+              );
             },
             child: const Text('Сохранить'),
           ),

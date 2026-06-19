@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tabik/main.dart';
+import 'package:tabik/home/site_index.dart';
 
 void main() {
   test('siteIndexAfterRemoval selects previous tab when available', () {

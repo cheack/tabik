@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'site_config.dart';
-import 'site_edit_dialog.dart';
-import 'site_icon.dart';
+import '../sites/site_config.dart';
+import '../sites/site_edit_dialog.dart';
+import '../sites/site_icon.dart';
 
 class SettingsPage extends StatefulWidget {
   final List<CategoryConfig> categories;
@@ -27,7 +27,9 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _categories = widget.categories.map((c) => c.copyWith(sites: List.of(c.sites))).toList();
+    _categories = widget.categories
+        .map((c) => c.copyWith(sites: List.of(c.sites)))
+        .toList();
   }
 
   void _addCategory() async {
@@ -38,17 +40,23 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _renameCategory(int index) async {
-    final name = await _showNameDialog('Переименовать', _categories[index].label);
+    final name = await _showNameDialog(
+      'Переименовать',
+      _categories[index].label,
+    );
     if (name != null && name.isNotEmpty) {
-      setState(() => _categories[index] = _categories[index].copyWith(label: name));
+      setState(
+        () => _categories[index] = _categories[index].copyWith(label: name),
+      );
     }
   }
 
   void _deleteCategory(int index) async {
-    final ok = await _confirm('Удалить категорию «${_categories[index].label}»?');
+    final ok = await _confirm(
+      'Удалить категорию «${_categories[index].label}»?',
+    );
     if (ok) setState(() => _categories.removeAt(index));
   }
-
 
   Future<String?> _showNameDialog(String title, String initial) {
     final ctrl = TextEditingController(text: initial);
@@ -63,8 +71,14 @@ class _SettingsPageState extends State<SettingsPage> {
           decoration: const InputDecoration(labelText: 'Название'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
-          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: const Text('OK')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
@@ -76,8 +90,14 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (ctx) => AlertDialog(
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Удалить')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Удалить'),
+          ),
         ],
       ),
     );
@@ -93,7 +113,9 @@ class _SettingsPageState extends State<SettingsPage> {
           sites: _categories[categoryIndex].sites,
           onSave: (newSites) {
             setState(() {
-              _categories[categoryIndex] = _categories[categoryIndex].copyWith(sites: newSites);
+              _categories[categoryIndex] = _categories[categoryIndex].copyWith(
+                sites: newSites,
+              );
             });
           },
         ),
@@ -108,72 +130,86 @@ class _SettingsPageState extends State<SettingsPage> {
         if (didPop) widget.onSave(_categories);
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Настройки'),
-        actions: [
-        ],
-      ),
-      body: ReorderableListView(
-        buildDefaultDragHandles: false,
-        header: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Тема', style: TextStyle(fontSize: 13, color: Colors.grey)),
-              const SizedBox(height: 8),
-              SegmentedButton<ThemeMode>(
-                segments: const [
-                  ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode), label: Text('Светлая')),
-                  ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.brightness_auto), label: Text('Авто')),
-                  ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode), label: Text('Тёмная')),
-                ],
-                selected: {widget.themeMode},
-                onSelectionChanged: (s) => widget.onThemeChanged(s.first),
-              ),
-              const SizedBox(height: 16),
-              const Text('Категории', style: TextStyle(fontSize: 13, color: Colors.grey)),
-            ],
-          ),
-        ),
-        onReorderItem: (oldIndex, newIndex) {
-          setState(() {
-            final item = _categories.removeAt(oldIndex);
-            _categories.insert(newIndex, item);
-          });
-        },
-        children: [
-          for (int i = 0; i < _categories.length; i++)
-            ListTile(
-              key: ValueKey(i),
-              leading: ReorderableDragStartListener(
-                index: i,
-                child: const Icon(Icons.drag_handle),
-              ),
-              title: Text(_categories[i].label),
-              subtitle: Text('${_categories[i].sites.length} вкладок'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 20),
-                    onPressed: () => _renameCategory(i),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, size: 20),
-                    onPressed: () => _deleteCategory(i),
-                  ),
-                ],
-              ),
-              onTap: () => _openSites(i),
+        appBar: AppBar(title: const Text('Настройки'), actions: []),
+        body: ReorderableListView(
+          buildDefaultDragHandles: false,
+          header: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Тема',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: ThemeMode.light,
+                      icon: Icon(Icons.light_mode),
+                      label: Text('Светлая'),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.system,
+                      icon: Icon(Icons.brightness_auto),
+                      label: Text('Авто'),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.dark,
+                      icon: Icon(Icons.dark_mode),
+                      label: Text('Тёмная'),
+                    ),
+                  ],
+                  selected: {widget.themeMode},
+                  onSelectionChanged: (s) => widget.onThemeChanged(s.first),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Категории',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+              ],
             ),
-        ],
+          ),
+          onReorderItem: (oldIndex, newIndex) {
+            setState(() {
+              final item = _categories.removeAt(oldIndex);
+              _categories.insert(newIndex, item);
+            });
+          },
+          children: [
+            for (int i = 0; i < _categories.length; i++)
+              ListTile(
+                key: ValueKey(i),
+                leading: ReorderableDragStartListener(
+                  index: i,
+                  child: const Icon(Icons.drag_handle),
+                ),
+                title: Text(_categories[i].label),
+                subtitle: Text('${_categories[i].sites.length} вкладок'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () => _renameCategory(i),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, size: 20),
+                      onPressed: () => _deleteCategory(i),
+                    ),
+                  ],
+                ),
+                onTap: () => _openSites(i),
+              ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _addCategory,
+          child: const Icon(Icons.add),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addCategory,
-        child: const Icon(Icons.add),
-      ),
-    ),
     );
   }
 }
@@ -220,8 +256,14 @@ class _SitesPageState extends State<_SitesPage> {
       builder: (ctx) => AlertDialog(
         content: Text('Удалить «$label»?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Удалить')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Удалить'),
+          ),
         ],
       ),
     );
@@ -264,7 +306,8 @@ class _SitesPageState extends State<_SitesPage> {
                     SiteIcon(site: _sites[i]),
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showEditDialog(existing: _sites[i], index: i),
+                      onPressed: () =>
+                          _showEditDialog(existing: _sites[i], index: i),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, size: 20),

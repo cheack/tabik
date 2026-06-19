@@ -103,18 +103,18 @@ class SiteConfig {
   });
 
   Map<String, dynamic> toJson() => {
-        'label': label,
-        'url': url,
-        'iconIndex': iconToIndex(icon),
-        if (faviconUrl != null) 'faviconUrl': faviconUrl,
-      };
+    'label': label,
+    'url': url,
+    'iconIndex': iconToIndex(icon),
+    if (faviconUrl != null) 'faviconUrl': faviconUrl,
+  };
 
   factory SiteConfig.fromJson(Map<String, dynamic> json) => SiteConfig(
-        label: json['label'] as String,
-        url: json['url'] as String,
-        icon: iconByIndex(json['iconIndex'] as int? ?? 0),
-        faviconUrl: json['faviconUrl'] as String?,
-      );
+    label: json['label'] as String,
+    url: json['url'] as String,
+    icon: iconByIndex(json['iconIndex'] as int? ?? 0),
+    faviconUrl: json['faviconUrl'] as String?,
+  );
 }
 
 class CategoryConfig {
@@ -124,16 +124,16 @@ class CategoryConfig {
   const CategoryConfig({required this.label, required this.sites});
 
   Map<String, dynamic> toJson() => {
-        'label': label,
-        'sites': sites.map((s) => s.toJson()).toList(),
-      };
+    'label': label,
+    'sites': sites.map((s) => s.toJson()).toList(),
+  };
 
   factory CategoryConfig.fromJson(Map<String, dynamic> json) => CategoryConfig(
-        label: json['label'] as String,
-        sites: (json['sites'] as List)
-            .map((e) => SiteConfig.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+    label: json['label'] as String,
+    sites: (json['sites'] as List)
+        .map((e) => SiteConfig.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
 
   CategoryConfig copyWith({String? label, List<SiteConfig>? sites}) =>
       CategoryConfig(label: label ?? this.label, sites: sites ?? this.sites);
