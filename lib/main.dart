@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -233,6 +234,66 @@ class _HomePageState extends State<HomePage> {
     await ctrl.loadRequest(_parseUrl(url));
   }
 
+  void _showSiteActions(int siteIndex, Offset position) async {
+    final sites = _categories[_categoryIndex].sites;
+    final site = sites[siteIndex];
+    final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final rect = RelativeRect.fromRect(
+      Rect.fromCenter(center: position, width: 0, height: 0),
+      Offset.zero & overlay.size,
+    );
+
+    final action = await showMenu<String>(
+      context: context,
+      position: rect,
+      items: [
+        PopupMenuItem(value: 'edit', child: Row(children: [
+          const Icon(Icons.edit, size: 20), const SizedBox(width: 12), Text('Изменить «${site.label}»'),
+        ])),
+        PopupMenuItem(value: 'delete', child: Row(children: [
+          const Icon(Icons.delete, size: 20, color: Colors.red), const SizedBox(width: 12),
+          Text('Удалить «${site.label}»', style: const TextStyle(color: Colors.red)),
+        ])),
+      ],
+    );
+
+    if (!mounted) return;
+
+    if (action == 'edit') {
+      final updated = await showSiteEditDialog(context, existing: site);
+      if (updated == null || !mounted) return;
+      setState(() {
+        final newSites = List<SiteConfig>.of(sites);
+        newSites[siteIndex] = updated;
+        _categories = List<CategoryConfig>.of(_categories);
+        _categories[_categoryIndex] = _categories[_categoryIndex].copyWith(sites: newSites);
+        _controllers[siteIndex].loadRequest(_parseUrl(updated.url));
+      });
+      _saveCategories();
+    } else if (action == 'delete') {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          content: Text('Удалить «${site.label}»?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Удалить')),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+      setState(() {
+        final newSites = List<SiteConfig>.of(sites)..removeAt(siteIndex);
+        _categories = List<CategoryConfig>.of(_categories);
+        _categories[_categoryIndex] = _categories[_categoryIndex].copyWith(sites: newSites);
+        _controllers.removeAt(siteIndex);
+        _loading.removeAt(siteIndex);
+        _siteIndex = _siteIndex.clamp(0, newSites.isEmpty ? 0 : newSites.length - 1);
+      });
+      _saveCategories();
+    }
+  }
+
   void _openSettings() {
     Navigator.push(
       context,
@@ -352,9 +413,10 @@ class _HomePageState extends State<HomePage> {
             ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: _BottomBar(
+        sites: sites,
         selectedIndex: _siteIndex,
-        onDestinationSelected: (i) {
+        onTap: (i) {
           if (i == sites.length) {
             _showMenu();
           } else if (i == _siteIndex) {
@@ -363,18 +425,100 @@ class _HomePageState extends State<HomePage> {
             setState(() => _siteIndex = i);
           }
         },
-        destinations: [
-          ...sites.map(
-            (s) => NavigationDestination(
-              icon: SiteIcon(site: s),
-              label: s.label,
+        onLongPress: (i, pos) => _showSiteActions(i, pos),
+      ),
+    );
+  }
+}
+
+class _BottomBar extends StatelessWidget {
+  final List<SiteConfig> sites;
+  final int selectedIndex;
+  final void Function(int) onTap;
+  final void Function(int, Offset) onLongPress;
+
+  const _BottomBar({
+    required this.sites,
+    required this.selectedIndex,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final items = [...sites.asMap().entries.map((e) => (e.key, e.value)), (sites.length, null)];
+
+    return NavigationBarTheme(
+      data: NavigationBarThemeData(
+        indicatorColor: colorScheme.secondaryContainer,
+        labelTextStyle: WidgetStateProperty.all(
+          TextStyle(fontSize: 12, color: colorScheme.onSurface),
+        ),
+      ),
+      child: Container(
+        color: colorScheme.surface,
+        child: SafeArea(
+          child: SizedBox(
+            height: 80,
+            child: Row(
+              children: items.map((item) {
+                final i = item.$1;
+                final site = item.$2;
+                final isSelected = i == selectedIndex;
+                final isSite = site != null;
+                return Expanded(
+                  key: ValueKey(isSite ? site.url : 'menu'),
+                  child: RawGestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    gestures: {
+                      TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                        () => TapGestureRecognizer(),
+                        (r) => r.onTap = () => onTap(i),
+                      ),
+                      if (isSite) LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+                        () => LongPressGestureRecognizer(duration: const Duration(milliseconds: 200)),
+                        (r) => r.onLongPressStart = (d) {
+                          HapticFeedback.mediumImpact();
+                          onLongPress(i, d.globalPosition);
+                        },
+                      ),
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected ? colorScheme.secondaryContainer : Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: isSite
+                              ? SiteIcon(site: site, size: 24)
+                              : Icon(Icons.more_vert, size: 24,
+                                  color: colorScheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isSite ? site.label : 'Меню',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isSelected
+                                ? colorScheme.onSecondaryContainer
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.more_vert),
-            label: 'Меню',
-          ),
-        ],
+        ),
       ),
     );
   }
