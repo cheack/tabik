@@ -49,14 +49,6 @@ class _SettingsPageState extends State<SettingsPage> {
     if (ok) setState(() => _categories.removeAt(index));
   }
 
-  void _resetCategories() async {
-    final ok = await _confirm('Вернуть категории по умолчанию?');
-    if (ok) {
-      setState(() => _categories = defaultCategories
-          .map((c) => c.copyWith(sites: List.of(c.sites)))
-          .toList());
-    }
-  }
 
   Future<String?> _showNameDialog(String title, String initial) {
     final ctrl = TextEditingController(text: initial);
@@ -67,6 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
         content: TextField(
           controller: ctrl,
           autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
           decoration: const InputDecoration(labelText: 'Название'),
         ),
         actions: [
@@ -118,7 +111,6 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text('Настройки'),
         actions: [
-          TextButton(onPressed: _resetCategories, child: const Text('Сброс')),
         ],
       ),
       body: ReorderableListView(
@@ -240,6 +232,7 @@ class _SitesPageState extends State<_SitesPage> {
               children: [
                 TextField(
                   controller: labelCtrl,
+                  textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(labelText: 'Название'),
                 ),
                 const SizedBox(height: 8),
