@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   final _storage = CategoryStorage();
 
   List<CategoryConfig> _categories = [];
+  bool _categoriesLoaded = false;
   int _categoryIndex = 0;
   int _siteIndex = 0;
 
@@ -124,7 +125,10 @@ class _HomePageState extends State<HomePage> {
   void _applyCategories(List<CategoryConfig> cats, {int categoryIndex = 0}) {
     setState(() {
       _categories = cats;
-      _categoryIndex = categoryIndex.clamp(0, cats.length - 1);
+      _categoriesLoaded = true;
+      _categoryIndex = cats.isEmpty
+          ? 0
+          : categoryIndex.clamp(0, cats.length - 1);
       _siteIndex = 0;
     });
     _buildControllers();
@@ -145,6 +149,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _buildControllers({int siteIndex = 0}) {
+    if (_categories.isEmpty) {
+      setState(() {
+        _controllers = [];
+        _loading = [];
+        _siteIndex = 0;
+      });
+      return;
+    }
     final sites = _categories[_categoryIndex].sites;
     final loading = List.filled(sites.length, true);
     final controllers = <WebViewController>[];
@@ -311,7 +323,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _openSettings() {
+  void _openSettings({
+    bool addCategoryOnOpen = false,
+    int? openCategoryIndex,
+    bool addSiteOnOpen = false,
+  }) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -319,6 +335,9 @@ class _HomePageState extends State<HomePage> {
           categories: _categories,
           themeMode: widget.themeMode,
           onThemeChanged: widget.onThemeChanged,
+          addCategoryOnOpen: addCategoryOnOpen,
+          openCategoryIndex: openCategoryIndex,
+          addSiteOnOpen: addSiteOnOpen,
           onSave: (newCats) {
             _applyCategories(newCats, categoryIndex: _categoryIndex);
             _saveCategories();
@@ -394,8 +413,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    if (_categories.isEmpty) {
+    if (!_categoriesLoaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_categories.isEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.layers_clear, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text('Нет категорий', style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: () => _openSettings(addCategoryOnOpen: true),
+                icon: const Icon(Icons.add),
+                label: const Text('Добавить категорию'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final sites = _categories[_categoryIndex].sites;
@@ -412,11 +452,22 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 24),
-              TextButton.icon(
-                onPressed: _showMenu,
-                icon: const Icon(Icons.more_vert),
-                label: const Text('Меню'),
+              OutlinedButton.icon(
+                onPressed: () => _openSettings(
+                  openCategoryIndex: _categoryIndex,
+                  addSiteOnOpen: true,
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('Добавить вкладку'),
               ),
+              if (_categories.length > 1) ...[
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _showMenu,
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text('Выбрать категорию'),
+                ),
+              ],
             ],
           ),
         ),

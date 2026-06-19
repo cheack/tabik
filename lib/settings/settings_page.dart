@@ -8,6 +8,9 @@ class SettingsPage extends StatefulWidget {
   final void Function(List<CategoryConfig>) onSave;
   final ThemeMode themeMode;
   final void Function(ThemeMode) onThemeChanged;
+  final bool addCategoryOnOpen;
+  final int? openCategoryIndex;
+  final bool addSiteOnOpen;
 
   const SettingsPage({
     super.key,
@@ -15,6 +18,9 @@ class SettingsPage extends StatefulWidget {
     required this.onSave,
     required this.themeMode,
     required this.onThemeChanged,
+    this.addCategoryOnOpen = false,
+    this.openCategoryIndex,
+    this.addSiteOnOpen = false,
   });
 
   @override
@@ -30,6 +36,16 @@ class _SettingsPageState extends State<SettingsPage> {
     _categories = widget.categories
         .map((c) => c.copyWith(sites: List.of(c.sites)))
         .toList();
+    if (widget.addCategoryOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _addCategory());
+    } else if (widget.openCategoryIndex != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openSites(
+          widget.openCategoryIndex!,
+          addSiteOnOpen: widget.addSiteOnOpen,
+        ),
+      );
+    }
   }
 
   void _addCategory() async {
@@ -104,13 +120,14 @@ class _SettingsPageState extends State<SettingsPage> {
     return ok == true;
   }
 
-  void _openSites(int categoryIndex) {
+  void _openSites(int categoryIndex, {bool addSiteOnOpen = false}) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => _SitesPage(
           categoryLabel: _categories[categoryIndex].label,
           sites: _categories[categoryIndex].sites,
+          addSiteOnOpen: addSiteOnOpen,
           onSave: (newSites) {
             setState(() {
               _categories[categoryIndex] = _categories[categoryIndex].copyWith(
@@ -230,11 +247,13 @@ class _SitesPage extends StatefulWidget {
   final String categoryLabel;
   final List<SiteConfig> sites;
   final void Function(List<SiteConfig>) onSave;
+  final bool addSiteOnOpen;
 
   const _SitesPage({
     required this.categoryLabel,
     required this.sites,
     required this.onSave,
+    this.addSiteOnOpen = false,
   });
 
   @override
@@ -248,6 +267,9 @@ class _SitesPageState extends State<_SitesPage> {
   void initState() {
     super.initState();
     _sites = List.of(widget.sites);
+    if (widget.addSiteOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showEditDialog());
+    }
   }
 
   void _showEditDialog({SiteConfig? existing, int? index}) async {
