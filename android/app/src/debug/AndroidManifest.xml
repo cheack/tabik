@@ -4,5 +4,5 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <application android:label="Tabik Dev"/>
+    <application android:label="Tabik Dev" tools:replace="android:label" xmlns:tools="http://schemas.android.com/tools"/>
 </manifest>
