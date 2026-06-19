@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'site_config.dart';
+import 'site_icon.dart';
 import 'settings_page.dart';
 
 void main() {
@@ -124,7 +125,7 @@ class _HomePageState extends State<HomePage> {
           onPageFinished: (_) => _setLoading(index, false),
           onWebResourceError: (_) => _setLoading(index, false),
         ))
-        ..loadRequest(Uri.parse(sites[i].url));
+        ..loadRequest(_parseUrl(sites[i].url));
       controllers.add(ctrl);
     }
 
@@ -151,11 +152,17 @@ class _HomePageState extends State<HomePage> {
     _buildControllers();
   }
 
+  Uri _parseUrl(String url) {
+    final uri = Uri.parse(url);
+    return uri.hasScheme ? uri : Uri.parse('https://$url');
+  }
+
   Future<void> _refresh() async {
+    if (_controllers.isEmpty || _siteIndex >= _controllers.length) return;
     final ctrl = _controllers[_siteIndex];
     final url = _categories[_categoryIndex].sites[_siteIndex].url;
     await ctrl.loadRequest(Uri.parse('about:blank'));
-    await ctrl.loadRequest(Uri.parse(url));
+    await ctrl.loadRequest(_parseUrl(url));
   }
 
   void _openSettings() {
@@ -291,7 +298,7 @@ class _HomePageState extends State<HomePage> {
         destinations: [
           ...sites.map(
             (s) => NavigationDestination(
-              icon: Icon(s.icon),
+              icon: SiteIcon(site: s),
               label: s.label,
             ),
           ),

@@ -93,23 +93,27 @@ class SiteConfig {
   final String label;
   final String url;
   final IconData icon;
+  final String? faviconUrl;
 
   const SiteConfig({
     required this.label,
     required this.url,
     required this.icon,
+    this.faviconUrl,
   });
 
   Map<String, dynamic> toJson() => {
         'label': label,
         'url': url,
         'iconIndex': iconToIndex(icon),
+        if (faviconUrl != null) 'faviconUrl': faviconUrl,
       };
 
   factory SiteConfig.fromJson(Map<String, dynamic> json) => SiteConfig(
         label: json['label'] as String,
         url: json['url'] as String,
         icon: iconByIndex(json['iconIndex'] as int? ?? 0),
+        faviconUrl: json['faviconUrl'] as String?,
       );
 }
 
