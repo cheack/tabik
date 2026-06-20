@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tabik/l10n/app_localizations.dart';
 
 import '../sites/site_config.dart';
 import '../sites/site_icon.dart';
@@ -96,7 +97,9 @@ class BottomBar extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          isSite ? site.label : 'Меню',
+                          isSite
+                              ? site.label
+                              : AppLocalizations.of(context)!.menu,
                           style: TextStyle(
                             fontSize: 12,
                             color: isSelected

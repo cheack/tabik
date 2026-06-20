@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.0
   cupertino_icons: ^1.0.8
   webview_flutter: ^4.12.0
   shared_preferences: ^2.5.3
@@ -22,6 +25,7 @@ dev_dependencies:
   flutter_native_splash: ^2.4.5
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/

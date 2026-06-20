@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:tabik/l10n/app_localizations.dart';
 import 'site_config.dart';
 import 'site_icon.dart';
 
@@ -84,8 +85,9 @@ Future<SiteConfig?> showSiteEditDialog(
           return Icon(selectedIcon, size: 24, color: primary);
         }
 
+        final l = AppLocalizations.of(ctx)!;
         return AlertDialog(
-          title: Text(existing == null ? 'Добавить сайт' : 'Изменить сайт'),
+          title: Text(existing == null ? l.addSite : l.editSiteTitle),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -94,7 +96,7 @@ Future<SiteConfig?> showSiteEditDialog(
                   controller: labelCtrl,
                   autofocus: existing == null,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(labelText: 'Название'),
+                  decoration: InputDecoration(labelText: l.nameLabel),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -106,9 +108,9 @@ Future<SiteConfig?> showSiteEditDialog(
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Text(
-                      'Иконка',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    Text(
+                      l.icon,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const SizedBox(width: 12),
                     Builder(
@@ -161,7 +163,7 @@ Future<SiteConfig?> showSiteEditDialog(
                                               ),
                                       ),
                                       const SizedBox(width: 12),
-                                      const Text('Иконка сайта'),
+                                      Text(l.siteIcon),
                                       if (useFavicon) ...[
                                         const SizedBox(width: 8),
                                         Icon(
@@ -261,7 +263,7 @@ Future<SiteConfig?> showSiteEditDialog(
                 debounce?.cancel();
                 Navigator.pop(ctx);
               },
-              child: const Text('Отмена'),
+              child: Text(l.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -280,7 +282,7 @@ Future<SiteConfig?> showSiteEditDialog(
                   ),
                 );
               },
-              child: const Text('Сохранить'),
+              child: Text(l.save),
             ),
           ],
         );

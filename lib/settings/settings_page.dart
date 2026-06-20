@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tabik/l10n/app_localizations.dart';
 import '../sites/site_config.dart';
 import '../sites/site_edit_dialog.dart';
 import '../sites/site_icon.dart';
@@ -49,17 +50,16 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _addCategory() async {
-    final name = await _showNameDialog('Новая категория', '');
+    final l = AppLocalizations.of(context)!;
+    final name = await _showNameDialog(l.newCategory, '');
     if (name != null && name.isNotEmpty) {
       setState(() => _categories.add(CategoryConfig(label: name, sites: [])));
     }
   }
 
   void _renameCategory(int index) async {
-    final name = await _showNameDialog(
-      'Переименовать',
-      _categories[index].label,
-    );
+    final l = AppLocalizations.of(context)!;
+    final name = await _showNameDialog(l.rename, _categories[index].label);
     if (name != null && name.isNotEmpty) {
       setState(
         () => _categories[index] = _categories[index].copyWith(label: name),
@@ -68,13 +68,15 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _deleteCategory(int index) async {
+    final l = AppLocalizations.of(context)!;
     final ok = await _confirm(
-      'Удалить категорию «${_categories[index].label}»?',
+      l.deleteCategoryConfirm(_categories[index].label),
     );
     if (ok) setState(() => _categories.removeAt(index));
   }
 
   Future<String?> _showNameDialog(String title, String initial) {
+    final l = AppLocalizations.of(context)!;
     final ctrl = TextEditingController(text: initial);
     return showDialog<String>(
       context: context,
@@ -84,16 +86,16 @@ class _SettingsPageState extends State<SettingsPage> {
           controller: ctrl,
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Название'),
+          decoration: InputDecoration(labelText: l.nameLabel),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: Text(l.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-            child: const Text('OK'),
+            child: Text(l.ok),
           ),
         ],
       ),
@@ -101,6 +103,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<bool> _confirm(String message) async {
+    final l = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -108,11 +111,11 @@ class _SettingsPageState extends State<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
+            child: Text(l.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Удалить'),
+            child: Text(l.delete),
           ),
         ],
       ),
@@ -142,12 +145,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) widget.onSave(_categories);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Настройки'), actions: []),
+        appBar: AppBar(title: Text(l.settings), actions: []),
         body: ReorderableListView(
           buildDefaultDragHandles: false,
           header: Padding(
@@ -155,36 +159,36 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Тема',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                Text(
+                  l.theme,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 8),
                 SegmentedButton<ThemeMode>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: ThemeMode.light,
-                      icon: Icon(Icons.light_mode),
-                      label: Text('Светлая'),
+                      icon: const Icon(Icons.light_mode),
+                      label: Text(l.themeLight),
                     ),
                     ButtonSegment(
                       value: ThemeMode.system,
-                      icon: Icon(Icons.brightness_auto),
-                      label: Text('Авто'),
+                      icon: const Icon(Icons.brightness_auto),
+                      label: Text(l.themeAuto),
                     ),
                     ButtonSegment(
                       value: ThemeMode.dark,
-                      icon: Icon(Icons.dark_mode),
-                      label: Text('Тёмная'),
+                      icon: const Icon(Icons.dark_mode),
+                      label: Text(l.themeDark),
                     ),
                   ],
                   selected: {widget.themeMode},
                   onSelectionChanged: (s) => widget.onThemeChanged(s.first),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Категории',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                Text(
+                  l.categories,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ],
             ),
@@ -201,7 +205,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: OutlinedButton.icon(
                 onPressed: _addCategory,
                 icon: const Icon(Icons.add),
-                label: const Text('Добавить категорию'),
+                label: Text(l.addCategory),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.primary,
                   side: BorderSide(
@@ -220,7 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: const Icon(Icons.drag_handle),
                 ),
                 title: Text(_categories[i].label),
-                subtitle: Text('${_categories[i].sites.length} вкладок'),
+                subtitle: Text(l.sitesCount(_categories[i].sites.length)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -285,18 +289,19 @@ class _SitesPageState extends State<_SitesPage> {
   }
 
   Future<bool> _confirmDelete(String label) async {
+    final l = AppLocalizations.of(context)!;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        content: Text('Удалить «$label»?'),
+        content: Text(l.deleteSiteConfirm(label)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
+            child: Text(l.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Удалить'),
+            child: Text(l.delete),
           ),
         ],
       ),
@@ -326,7 +331,7 @@ class _SitesPageState extends State<_SitesPage> {
               child: OutlinedButton.icon(
                 onPressed: () => _showEditDialog(),
                 icon: const Icon(Icons.add),
-                label: const Text('Добавить сайт'),
+                label: Text(AppLocalizations.of(context)!.addSite),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.primary,
                   side: BorderSide(

@@ -1,0 +1,118 @@
+{
+  "@@locale": "ru",
+
+  "cancel": "Отмена",
+  "@cancel": { "description": "Cancel button" },
+
+  "ok": "OK",
+  "@ok": { "description": "OK button" },
+
+  "delete": "Удалить",
+  "@delete": { "description": "Delete button" },
+
+  "save": "Сохранить",
+  "@save": { "description": "Save button" },
+
+  "next": "Далее",
+  "@next": { "description": "Next button" },
+
+  "nameLabel": "Название",
+  "@nameLabel": { "description": "Text field label for name" },
+
+  "menu": "Меню",
+  "@menu": { "description": "Menu button label in bottom bar" },
+
+  "settings": "Настройки",
+  "@settings": { "description": "Settings page title and menu item" },
+
+  "categories": "Категории",
+  "@categories": { "description": "Categories section header" },
+
+  "category": "Категория",
+  "@category": { "description": "Category dialog title and label" },
+
+  "theme": "Тема",
+  "@theme": { "description": "Theme section header" },
+
+  "themeLight": "Светлая",
+  "@themeLight": { "description": "Light theme button" },
+
+  "themeAuto": "Авто",
+  "@themeAuto": { "description": "Auto/system theme button" },
+
+  "themeDark": "Тёмная",
+  "@themeDark": { "description": "Dark theme button" },
+
+  "addCategory": "Добавить категорию",
+  "@addCategory": { "description": "Add category button label" },
+
+  "newCategory": "Новая категория",
+  "@newCategory": { "description": "New category dialog title" },
+
+  "rename": "Переименовать",
+  "@rename": { "description": "Rename dialog title" },
+
+  "noCategories": "Нет категорий",
+  "@noCategories": { "description": "Empty state when no categories exist" },
+
+  "addSite": "Добавить сайт",
+  "@addSite": { "description": "Add site button label and dialog title" },
+
+  "editSiteTitle": "Изменить сайт",
+  "@editSiteTitle": { "description": "Edit site dialog title" },
+
+  "noSitesInCategory": "Нет сайтов в этой категории",
+  "@noSitesInCategory": { "description": "Empty state when category has no sites" },
+
+  "selectCategory": "Выбрать категорию",
+  "@selectCategory": { "description": "Select category button" },
+
+  "icon": "Иконка",
+  "@icon": { "description": "Icon section label in site edit dialog" },
+
+  "siteIcon": "Иконка сайта",
+  "@siteIcon": { "description": "Site favicon menu item" },
+
+  "pressBackAgainToExit": "Нажмите ещё раз для выхода",
+  "@pressBackAgainToExit": { "description": "Snackbar message on back press" },
+
+  "editSite": "Изменить «{name}»",
+  "@editSite": {
+    "description": "Context menu item to edit a site",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "deleteSite": "Удалить «{name}»",
+  "@deleteSite": {
+    "description": "Context menu item to delete a site",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "deleteSiteConfirm": "Удалить «{name}»?",
+  "@deleteSiteConfirm": {
+    "description": "Confirmation dialog message for deleting a site",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "deleteCategoryConfirm": "Удалить категорию «{name}»?",
+  "@deleteCategoryConfirm": {
+    "description": "Confirmation dialog message for deleting a category",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "sitesCount": "{count, plural, one{{count} сайт} few{{count} сайта} many{{count} сайтов} other{{count} сайтов}}",
+  "@sitesCount": {
+    "description": "Number of sites in a category",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
+}

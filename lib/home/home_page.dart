@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tabik/l10n/app_localizations.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'bottom_bar.dart';
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showAddFromShareDialog(String sharedUrl) async {
     if (_categories.isEmpty || !mounted) return;
+    final l = AppLocalizations.of(context)!;
     int selectedCategory = _categoryIndex;
 
     final cat = await showDialog<int>(
@@ -71,10 +73,10 @@ class _HomePageState extends State<HomePage> {
         int picked = selectedCategory;
         return StatefulBuilder(
           builder: (ctx, setSt) => AlertDialog(
-            title: const Text('Категория'),
+            title: Text(l.category),
             content: DropdownButtonFormField<int>(
               initialValue: picked,
-              decoration: const InputDecoration(labelText: 'Категория'),
+              decoration: InputDecoration(labelText: l.category),
               items: [
                 for (int i = 0; i < _categories.length; i++)
                   DropdownMenuItem(value: i, child: Text(_categories[i].label)),
@@ -84,11 +86,11 @@ class _HomePageState extends State<HomePage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Отмена'),
+                child: Text(l.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, picked),
-                child: const Text('Далее'),
+                child: Text(l.next),
               ),
             ],
           ),
@@ -203,6 +205,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showSiteActions(int siteIndex, Offset position) async {
     final site = _categories[_categoryIndex].sites[siteIndex];
+    final l = AppLocalizations.of(context)!;
     final overlay =
         Overlay.of(context).context.findRenderObject()! as RenderBox;
     final rect = RelativeRect.fromRect(
@@ -220,7 +223,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Icon(Icons.edit, size: 20),
               const SizedBox(width: 12),
-              Text('Изменить «${site.label}»'),
+              Text(l.editSite(site.label)),
             ],
           ),
         ),
@@ -231,7 +234,7 @@ class _HomePageState extends State<HomePage> {
               const Icon(Icons.delete, size: 20, color: Colors.red),
               const SizedBox(width: 12),
               Text(
-                'Удалить «${site.label}»',
+                l.deleteSite(site.label),
                 style: const TextStyle(color: Colors.red),
               ),
             ],
@@ -264,15 +267,15 @@ class _HomePageState extends State<HomePage> {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          content: Text('Удалить «${site.label}»?'),
+          content: Text(l.deleteSiteConfirm(site.label)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Отмена'),
+              child: Text(l.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Удалить'),
+              child: Text(l.delete),
             ),
           ],
         ),
@@ -315,9 +318,9 @@ class _HomePageState extends State<HomePage> {
     _lastBackPress = now;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Нажмите ещё раз для выхода'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.pressBackAgainToExit),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -348,6 +351,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showMenu() {
+    final l = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -356,11 +360,11 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Text(
-                  'Категории',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  l.categories,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ),
               Flexible(
@@ -388,7 +392,7 @@ class _HomePageState extends State<HomePage> {
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.settings),
-                title: const Text('Настройки'),
+                title: Text(l.settings),
                 onTap: () {
                   Navigator.pop(ctx);
                   _openSettings();
@@ -413,6 +417,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     if (!_categoriesLoaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -425,12 +431,12 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Icon(Icons.layers_clear, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
-              const Text('Нет категорий', style: TextStyle(color: Colors.grey)),
+              Text(l.noCategories, style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 24),
               OutlinedButton.icon(
                 onPressed: () => _openSettings(addCategoryOnOpen: true),
                 icon: const Icon(Icons.add),
-                label: const Text('Добавить категорию'),
+                label: Text(l.addCategory),
               ),
             ],
           ),
@@ -447,9 +453,9 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Icon(Icons.layers_clear, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
-              const Text(
-                'Нет вкладок в этой категории',
-                style: TextStyle(color: Colors.grey),
+              Text(
+                l.noSitesInCategory,
+                style: const TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 24),
               OutlinedButton.icon(
@@ -458,14 +464,14 @@ class _HomePageState extends State<HomePage> {
                   addSiteOnOpen: true,
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Добавить сайт'),
+                label: Text(l.addSite),
               ),
               if (_categories.length > 1) ...[
                 const SizedBox(height: 8),
                 TextButton.icon(
                   onPressed: _showMenu,
                   icon: const Icon(Icons.swap_horiz),
-                  label: const Text('Выбрать категорию'),
+                  label: Text(l.selectCategory),
                 ),
               ],
             ],
