@@ -37,136 +37,232 @@ Future<SiteConfig?> showSiteEditDialog(
   return showDialog<SiteConfig>(
     context: context,
     builder: (ctx) => StatefulBuilder(
-      builder: (ctx, setDialogState) => AlertDialog(
-        title: Text(existing == null ? 'Добавить сайт' : 'Изменить сайт'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: labelCtrl,
-                autofocus: existing == null,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(labelText: 'Название'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: urlCtrl,
-                decoration: const InputDecoration(labelText: 'URL'),
-                keyboardType: TextInputType.url,
-                onChanged: useFavicon
-                    ? (v) => fetchFavicon(v, setDialogState)
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Иконка',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(value: true, label: Text('Авто')),
-                  ButtonSegment(value: false, label: Text('Из списка')),
-                ],
-                selected: {useFavicon},
-                onSelectionChanged: (s) {
-                  useFavicon = s.first;
-                  if (useFavicon && faviconUrl == null) {
-                    fetchFavicon(urlCtrl.text, setDialogState);
-                  }
-                  setDialogState(() {});
-                },
-              ),
-              const SizedBox(height: 12),
-              if (useFavicon)
-                SizedBox(
-                  height: 40,
-                  child: faviconLoading
-                      ? const CircularProgressIndicator(strokeWidth: 2)
-                      : faviconUrl != null
-                      ? Image.network(
-                          faviconUrl!,
-                          width: 40,
-                          height: 40,
-                          errorBuilder: (_, e, s) =>
-                              const Icon(Icons.broken_image, size: 40),
-                        )
-                      : const Text(
-                          'Введите URL',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                )
-              else
-                SizedBox(
-                  height: 200,
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: allIcons.map((icon) {
-                        final selected = icon == selectedIcon;
-                        return GestureDetector(
-                          onTap: () =>
-                              setDialogState(() => selectedIcon = icon),
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: selected
-                                  ? Theme.of(ctx).colorScheme.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: selected
-                                    ? Theme.of(ctx).colorScheme.primary
-                                    : Colors.grey.shade600,
-                              ),
-                            ),
-                            child: Icon(
-                              icon,
-                              size: 24,
-                              color: selected ? Colors.white : null,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              debounce?.cancel();
-              Navigator.pop(ctx);
-            },
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              final label = labelCtrl.text.trim();
-              final url = urlCtrl.text.trim();
-              if (label.isEmpty || url.isEmpty) return;
-              debounce?.cancel();
-              Navigator.pop(
-                ctx,
-                SiteConfig(
-                  label: label,
-                  url: url,
-                  icon: selectedIcon,
-                  faviconUrl: useFavicon ? faviconUrl : null,
-                ),
+      builder: (ctx, setDialogState) {
+        final primary = Theme.of(ctx).colorScheme.primary;
+
+        Widget currentIconWidget() {
+          if (useFavicon) {
+            if (faviconLoading) {
+              return const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
               );
-            },
-            child: const Text('Сохранить'),
+            }
+            if (faviconUrl != null && faviconUrl!.isNotEmpty) {
+              return Image.network(
+                faviconUrl!,
+                width: 24,
+                height: 24,
+                errorBuilder: (_, e, s) =>
+                    Icon(Icons.language, size: 24, color: primary),
+              );
+            }
+            return Icon(Icons.language, size: 24, color: primary);
+          }
+          return Icon(selectedIcon, size: 24, color: primary);
+        }
+
+        return AlertDialog(
+          title: Text(existing == null ? 'Добавить сайт' : 'Изменить сайт'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: labelCtrl,
+                  autofocus: existing == null,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(labelText: 'Название'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: urlCtrl,
+                  decoration: const InputDecoration(labelText: 'URL'),
+                  keyboardType: TextInputType.url,
+                  onChanged: (v) => fetchFavicon(v, setDialogState),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text(
+                      'Иконка',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(width: 12),
+                    Builder(
+                      builder: (btnCtx) => InkWell(
+                        onTap: () async {
+                          final box = btnCtx.findRenderObject()! as RenderBox;
+                          final overlay =
+                              Overlay.of(btnCtx).context.findRenderObject()!
+                                  as RenderBox;
+                          final rect = RelativeRect.fromRect(
+                            box.localToGlobal(Offset.zero, ancestor: overlay) &
+                                box.size,
+                            Offset.zero & overlay.size,
+                          );
+                          final result = await showMenu<Object>(
+                            context: btnCtx,
+                            position: rect,
+                            items: [
+                              PopupMenuItem<Object>(
+                                value: 'favicon',
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                child: SizedBox(
+                                  width: 260,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: 28,
+                                        height: 28,
+                                        child: faviconLoading
+                                            ? const CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              )
+                                            : faviconUrl != null
+                                            ? Image.network(
+                                                faviconUrl!,
+                                                errorBuilder: (_, e, s) =>
+                                                    const Icon(
+                                                      Icons.broken_image,
+                                                      size: 20,
+                                                    ),
+                                              )
+                                            : const Icon(
+                                                Icons.language,
+                                                size: 20,
+                                                color: Colors.grey,
+                                              ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Авто'),
+                                      if (useFavicon) ...[
+                                        const SizedBox(width: 8),
+                                        Icon(
+                                          Icons.check,
+                                          size: 16,
+                                          color: Theme.of(
+                                            btnCtx,
+                                          ).colorScheme.primary,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const PopupMenuDivider(),
+                              PopupMenuItem<Object>(
+                                enabled: false,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                child: SizedBox(
+                                  width: 260,
+                                  child: GridView.count(
+                                    crossAxisCount: 7,
+                                    crossAxisSpacing: 4,
+                                    mainAxisSpacing: 4,
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    children: allIcons
+                                        .map(
+                                          (ic) => InkWell(
+                                            onTap: () =>
+                                                Navigator.pop(btnCtx, ic),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    !useFavicon &&
+                                                        ic == selectedIcon
+                                                    ? Theme.of(
+                                                        btnCtx,
+                                                      ).colorScheme.primary
+                                                    : Colors.transparent,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Icon(
+                                                ic,
+                                                size: 20,
+                                                color:
+                                                    !useFavicon &&
+                                                        ic == selectedIcon
+                                                    ? Colors.white
+                                                    : null,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                          if (result == 'favicon') {
+                            setDialogState(() => useFavicon = true);
+                          } else if (result is IconData) {
+                            setDialogState(() {
+                              useFavicon = false;
+                              selectedIcon = result;
+                            });
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: primary),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: currentIconWidget(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                debounce?.cancel();
+                Navigator.pop(ctx);
+              },
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                final label = labelCtrl.text.trim();
+                final url = urlCtrl.text.trim();
+                if (label.isEmpty || url.isEmpty) return;
+                debounce?.cancel();
+                Navigator.pop(
+                  ctx,
+                  SiteConfig(
+                    label: label,
+                    url: url,
+                    icon: selectedIcon,
+                    faviconUrl: useFavicon ? (faviconUrl ?? '') : null,
+                  ),
+                );
+              },
+              child: const Text('Сохранить'),
+            ),
+          ],
+        );
+      },
     ),
   );
 }

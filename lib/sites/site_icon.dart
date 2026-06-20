@@ -2,7 +2,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'site_config.dart';
 
+const _kFaviconTimeout = Duration(seconds: 8);
+
 Future<String?> resolveFavicon(String siteUrl) async {
+  try {
+    return await _resolveFavicon(siteUrl).timeout(_kFaviconTimeout);
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<String?> _resolveFavicon(String siteUrl) async {
   try {
     final raw = siteUrl.startsWith('http') ? siteUrl : 'https://$siteUrl';
     final uri = Uri.parse(raw);
@@ -70,8 +80,11 @@ class SiteIcon extends StatelessWidget {
         url,
         width: size,
         height: size,
-        errorBuilder: (_, e, s) => Icon(site.icon, size: size),
+        errorBuilder: (_, e, s) => Icon(Icons.language, size: size),
       );
+    }
+    if (url != null && url.isEmpty) {
+      return Icon(Icons.language, size: size);
     }
     return Icon(site.icon, size: size);
   }
