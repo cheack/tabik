@@ -28,7 +28,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   static const _mobileUserAgent =
       'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
@@ -43,17 +43,32 @@ class _HomePageState extends State<HomePage> {
 
   List<WebViewController> _controllers = [];
   List<bool> _loading = [];
+  List<int> _webViewEpochs = [];
   DateTime? _lastBackPress;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadCategories();
     _shareChannel.setMethodCallHandler((call) async {
       if (call.method == 'sharedUrl') {
         _handleSharedUrl(call.arguments as String?);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshWebViewSurface(_siteIndex);
+    }
   }
 
   Future<void> _checkPendingShare() async {
@@ -115,6 +130,7 @@ class _HomePageState extends State<HomePage> {
       if (selectedCategory == _categoryIndex) {
         _controllers.add(_createController(site.url, _controllers.length));
         _loading.add(true);
+        _webViewEpochs.add(0);
       }
     });
     _saveCategories();
@@ -159,6 +175,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _controllers = [];
         _loading = [];
+        _webViewEpochs = [];
         _siteIndex = 0;
       });
       return;
@@ -174,8 +191,29 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _controllers = controllers;
       _loading = loading;
+      _webViewEpochs = List.filled(sites.length, 0);
       _siteIndex = sites.isEmpty ? 0 : siteIndex.clamp(0, sites.length - 1);
     });
+  }
+
+  Widget _buildWebView(int index, WebViewController controller) {
+    return WebViewWidget(
+      key: ValueKey('webview-$index-${_webViewEpochs[index]}'),
+      controller: controller,
+    );
+  }
+
+  Future<void> _refreshWebViewSurface(int index) async {
+    if (!mounted || index < 0 || index >= _controllers.length) return;
+
+    setState(() {
+      if (index < _webViewEpochs.length) _webViewEpochs[index]++;
+    });
+
+    try {
+      await _controllers[index].scrollBy(0, 1);
+      await _controllers[index].scrollBy(0, -1);
+    } catch (_) {}
   }
 
   void _setLoading(int index, bool value) {
@@ -310,6 +348,9 @@ class _HomePageState extends State<HomePage> {
     if (_controllers.isNotEmpty && _siteIndex < _controllers.length) {
       if (await _controllers[_siteIndex].canGoBack()) {
         await _controllers[_siteIndex].goBack();
+        await _refreshWebViewSurface(_siteIndex);
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+        await _refreshWebViewSurface(_siteIndex);
         return;
       }
     }
@@ -507,9 +548,10 @@ class _HomePageState extends State<HomePage> {
         children: [
           IndexedStack(
             index: activeControllerIndex,
-            children: _controllers
-                .map((ctrl) => WebViewWidget(controller: ctrl))
-                .toList(),
+            children: [
+              for (var i = 0; i < _controllers.length; i++)
+                _buildWebView(i, _controllers[i]),
+            ],
           ),
           if (isLoading)
             const Positioned(
