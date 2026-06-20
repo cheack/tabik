@@ -1,4 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:tabik/l10n/app_localizations.dart';
 import '../sites/site_config.dart';
 import '../sites/site_edit_dialog.dart';
@@ -129,6 +133,58 @@ class _SettingsPageState extends State<SettingsPage> {
     return ok == true;
   }
 
+  Future<void> _exportSettings() async {
+    final json = CategoryConfig.encodeList(_categories);
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/tabik_settings.json');
+    await file.writeAsString(json);
+    await Share.shareXFiles([XFile(file.path)]);
+  }
+
+  Future<void> _importSettings() async {
+    final l = AppLocalizations.of(context)!;
+    const typeGroup = XTypeGroup(label: 'JSON', extensions: ['json']);
+    final file = await openFile(acceptedTypeGroups: [typeGroup]);
+    if (file == null) return;
+
+    List<CategoryConfig> imported;
+    try {
+      imported = CategoryConfig.decodeList(await file.readAsString());
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l.importError)));
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Text(l.importConfirm(imported.length)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.ok),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true && mounted) {
+      setState(() => _categories = imported);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.importSuccess(imported.length))));
+    }
+  }
+
   void _openSites(int categoryIndex, {bool addSiteOnOpen = false}) {
     Navigator.push(
       context,
@@ -228,19 +284,43 @@ class _SettingsPageState extends State<SettingsPage> {
             });
           },
           footer: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Center(
-              child: OutlinedButton.icon(
-                onPressed: _addCategory,
-                icon: const Icon(Icons.add),
-                label: Text(l.addCategory),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            child: Column(
+              children: [
+                Center(
+                  child: OutlinedButton.icon(
+                    onPressed: _addCategory,
+                    icon: const Icon(Icons.add),
+                    label: Text(l.addCategory),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.primary,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _importSettings,
+                        icon: const Icon(Icons.upload_file, size: 18),
+                        label: Text(l.importSettings),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _exportSettings,
+                        icon: const Icon(Icons.download, size: 18),
+                        label: Text(l.exportSettings),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           children: [

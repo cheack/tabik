@@ -33,5 +33,16 @@
   "deleteSite": "Delete \"{name}\"",
   "deleteSiteConfirm": "Delete \"{name}\"?",
   "deleteCategoryConfirm": "Delete category \"{name}\"?",
-  "sitesCount": "{count, plural, one{{count} site} other{{count} sites}}"
+  "sitesCount": "{count, plural, one{{count} site} other{{count} sites}}",
+  "exportSettings": "Export",
+  "importSettings": "Import",
+  "importConfirm": "Import {count} {count, plural, one{category} other{categories}}? Current settings will be replaced.",
+  "@importConfirm": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "importSuccess": "Imported {count} {count, plural, one{category} other{categories}}",
+  "@importSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "importError": "Invalid file format"
 }

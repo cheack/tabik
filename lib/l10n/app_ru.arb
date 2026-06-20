@@ -123,5 +123,26 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+
+  "exportSettings": "Экспорт",
+  "@exportSettings": { "description": "Export settings button" },
+
+  "importSettings": "Импорт",
+  "@importSettings": { "description": "Import settings button" },
+
+  "importConfirm": "Импортировать {count} {count, plural, one{категорию} few{категории} many{категорий} other{категорий}}? Текущие настройки будут заменены.",
+  "@importConfirm": {
+    "description": "Import confirmation dialog message",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "importSuccess": "Импортировано {count} {count, plural, one{категория} few{категории} many{категорий} other{категорий}}",
+  "@importSuccess": {
+    "description": "Snackbar after successful import",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "importError": "Неверный формат файла",
+  "@importError": { "description": "Snackbar on import parse error" }
 }

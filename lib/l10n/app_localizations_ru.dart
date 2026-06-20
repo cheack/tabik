@@ -124,4 +124,39 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get exportSettings => 'Экспорт';
+
+  @override
+  String get importSettings => 'Импорт';
+
+  @override
+  String importConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'категорий',
+      many: 'категорий',
+      few: 'категории',
+      one: 'категорию',
+    );
+    return 'Импортировать $count $_temp0? Текущие настройки будут заменены.';
+  }
+
+  @override
+  String importSuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'категорий',
+      many: 'категорий',
+      few: 'категории',
+      one: 'категория',
+    );
+    return 'Импортировано $count $_temp0';
+  }
+
+  @override
+  String get importError => 'Неверный формат файла';
 }

@@ -295,6 +295,36 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'{count, plural, one{{count} сайт} few{{count} сайта} many{{count} сайтов} other{{count} сайтов}}'**
   String sitesCount(int count);
+
+  /// Export settings button
+  ///
+  /// In ru, this message translates to:
+  /// **'Экспорт'**
+  String get exportSettings;
+
+  /// Import settings button
+  ///
+  /// In ru, this message translates to:
+  /// **'Импорт'**
+  String get importSettings;
+
+  /// Import confirmation dialog message
+  ///
+  /// In ru, this message translates to:
+  /// **'Импортировать {count} {count, plural, one{категорию} few{категории} many{категорий} other{категорий}}? Текущие настройки будут заменены.'**
+  String importConfirm(int count);
+
+  /// Snackbar after successful import
+  ///
+  /// In ru, this message translates to:
+  /// **'Импортировано {count} {count, plural, one{категория} few{категории} many{категорий} other{категорий}}'**
+  String importSuccess(int count);
+
+  /// Snackbar on import parse error
+  ///
+  /// In ru, this message translates to:
+  /// **'Неверный формат файла'**
+  String get importError;
 }
 
 class _AppLocalizationsDelegate

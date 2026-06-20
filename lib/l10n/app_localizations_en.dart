@@ -122,4 +122,35 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get exportSettings => 'Export';
+
+  @override
+  String get importSettings => 'Import';
+
+  @override
+  String importConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'categories',
+      one: 'category',
+    );
+    return 'Import $count $_temp0? Current settings will be replaced.';
+  }
+
+  @override
+  String importSuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'categories',
+      one: 'category',
+    );
+    return 'Imported $count $_temp0';
+  }
+
+  @override
+  String get importError => 'Invalid file format';
 }
