@@ -7,7 +7,7 @@ BUILD_NUMBER := $(shell git rev-list --count HEAD)
 
 .PHONY: run run-linux \
         build build-arm64 build-arm32 build-x64 build-x86 build-all build-split \
-        build-appbundle install icons splash deps clean help
+        build-appbundle install icons splash deps clean release help
 
 help:
 	@echo "Usage: make <target>"
@@ -32,6 +32,7 @@ help:
 	@echo "  splash          Regenerate splash screen"
 	@echo "  deps            flutter pub get"
 	@echo "  clean           Clean build cache"
+	@echo "  release         Tag and push a release (VERSION=x.y.z)"
 
 run:
 	@if [ -z "$(DEVICE)" ]; then \
@@ -106,3 +107,7 @@ deps:
 clean:
 	$(FLUTTER) clean
 	$(FLUTTER) pub get
+
+release:
+	@[ -n "$(VERSION)" ] || { echo "Usage: make release VERSION=1.0.1"; exit 1; }
+	@bash scripts/release.sh $(VERSION)
