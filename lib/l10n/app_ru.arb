@@ -76,6 +76,15 @@
   "pressBackAgainToExit": "Нажмите ещё раз для выхода",
   "@pressBackAgainToExit": { "description": "Snackbar message on back press" },
 
+  "language": "Язык",
+  "@language": { "description": "Language section header in settings" },
+
+  "languageRu": "Русский",
+  "@languageRu": { "description": "Russian language option" },
+
+  "languageEn": "English",
+  "@languageEn": { "description": "English language option" },
+
   "editSite": "Изменить «{name}»",
   "@editSite": {
     "description": "Context menu item to edit a site",

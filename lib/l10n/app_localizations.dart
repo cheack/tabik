@@ -248,6 +248,24 @@ abstract class AppLocalizations {
   /// **'Нажмите ещё раз для выхода'**
   String get pressBackAgainToExit;
 
+  /// Language section header in settings
+  ///
+  /// In ru, this message translates to:
+  /// **'Язык'**
+  String get language;
+
+  /// Russian language option
+  ///
+  /// In ru, this message translates to:
+  /// **'Русский'**
+  String get languageRu;
+
+  /// English language option
+  ///
+  /// In ru, this message translates to:
+  /// **'English'**
+  String get languageEn;
+
   /// Context menu item to edit a site
   ///
   /// In ru, this message translates to:

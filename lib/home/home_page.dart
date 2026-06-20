@@ -13,11 +13,15 @@ import '../storage/category_storage.dart';
 class HomePage extends StatefulWidget {
   final ThemeMode themeMode;
   final void Function(ThemeMode) onThemeChanged;
+  final Locale? locale;
+  final void Function(Locale?) onLocaleChanged;
 
   const HomePage({
     super.key,
     required this.themeMode,
     required this.onThemeChanged,
+    required this.locale,
+    required this.onLocaleChanged,
   });
 
   @override
@@ -338,6 +342,8 @@ class _HomePageState extends State<HomePage> {
           categories: _categories,
           themeMode: widget.themeMode,
           onThemeChanged: widget.onThemeChanged,
+          locale: widget.locale,
+          onLocaleChanged: widget.onLocaleChanged,
           addCategoryOnOpen: addCategoryOnOpen,
           openCategoryIndex: openCategoryIndex,
           addSiteOnOpen: addSiteOnOpen,

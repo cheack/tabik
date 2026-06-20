@@ -84,6 +84,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get pressBackAgainToExit => 'Нажмите ещё раз для выхода';
 
   @override
+  String get language => 'Язык';
+
+  @override
+  String get languageRu => 'Русский';
+
+  @override
+  String get languageEn => 'English';
+
+  @override
   String editSite(String name) {
     return 'Изменить «$name»';
   }

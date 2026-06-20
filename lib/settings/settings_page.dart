@@ -9,6 +9,8 @@ class SettingsPage extends StatefulWidget {
   final void Function(List<CategoryConfig>) onSave;
   final ThemeMode themeMode;
   final void Function(ThemeMode) onThemeChanged;
+  final Locale? locale;
+  final void Function(Locale?) onLocaleChanged;
   final bool addCategoryOnOpen;
   final int? openCategoryIndex;
   final bool addSiteOnOpen;
@@ -19,6 +21,8 @@ class SettingsPage extends StatefulWidget {
     required this.onSave,
     required this.themeMode,
     required this.onThemeChanged,
+    required this.locale,
+    required this.onLocaleChanged,
     this.addCategoryOnOpen = false,
     this.openCategoryIndex,
     this.addSiteOnOpen = false,
@@ -30,10 +34,12 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late List<CategoryConfig> _categories;
+  late Locale? _locale;
 
   @override
   void initState() {
     super.initState();
+    _locale = widget.locale;
     _categories = widget.categories
         .map((c) => c.copyWith(sites: List.of(c.sites)))
         .toList();
@@ -184,6 +190,28 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                   selected: {widget.themeMode},
                   onSelectionChanged: (s) => widget.onThemeChanged(s.first),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l.language,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                DropdownButton<String>(
+                  value: _locale?.languageCode ?? 'auto',
+                  isExpanded: true,
+                  items: [
+                    DropdownMenuItem(value: 'auto', child: Text(l.themeAuto)),
+                    DropdownMenuItem(value: 'ru', child: Text(l.languageRu)),
+                    DropdownMenuItem(value: 'en', child: Text(l.languageEn)),
+                  ],
+                  onChanged: (key) {
+                    final locale = key == null || key == 'auto'
+                        ? null
+                        : Locale(key);
+                    setState(() => _locale = locale);
+                    widget.onLocaleChanged(locale);
+                  },
                 ),
                 const SizedBox(height: 16),
                 Text(

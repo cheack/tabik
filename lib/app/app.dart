@@ -14,20 +14,24 @@ class TabikApp extends StatefulWidget {
 
 class _TabikAppState extends State<TabikApp> {
   static const _themeKey = 'theme_mode';
+  static const _localeKey = 'locale';
   ThemeMode _themeMode = ThemeMode.system;
+  Locale? _locale;
 
   @override
   void initState() {
     super.initState();
-    _loadTheme();
+    _loadPrefs();
   }
 
-  Future<void> _loadTheme() async {
+  Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(_themeKey);
-    if (value != null) {
-      setState(() => _themeMode = _parseTheme(value));
-    }
+    final theme = prefs.getString(_themeKey);
+    final locale = prefs.getString(_localeKey);
+    setState(() {
+      if (theme != null) _themeMode = _parseTheme(theme);
+      _locale = _parseLocale(locale);
+    });
   }
 
   Future<void> _setTheme(ThemeMode mode) async {
@@ -36,10 +40,26 @@ class _TabikAppState extends State<TabikApp> {
     await prefs.setString(_themeKey, mode.name);
   }
 
+  Future<void> _setLocale(Locale? locale) async {
+    setState(() => _locale = locale);
+    final prefs = await SharedPreferences.getInstance();
+    if (locale == null) {
+      await prefs.remove(_localeKey);
+    } else {
+      await prefs.setString(_localeKey, locale.languageCode);
+    }
+  }
+
   ThemeMode _parseTheme(String value) => switch (value) {
     'light' => ThemeMode.light,
     'system' => ThemeMode.system,
     _ => ThemeMode.system,
+  };
+
+  Locale? _parseLocale(String? value) => switch (value) {
+    'ru' => const Locale('ru'),
+    'en' => const Locale('en'),
+    _ => null,
   };
 
   @override
@@ -57,7 +77,13 @@ class _TabikAppState extends State<TabikApp> {
       themeMode: _themeMode,
       theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
-      home: HomePage(onThemeChanged: _setTheme, themeMode: _themeMode),
+      locale: _locale,
+      home: HomePage(
+        themeMode: _themeMode,
+        onThemeChanged: _setTheme,
+        locale: _locale,
+        onLocaleChanged: _setLocale,
+      ),
     );
   }
 }
