@@ -11,10 +11,19 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+if git rev-parse "refs/tags/${VERSION}" &>/dev/null; then
+  echo "Error: tag '${VERSION}' already exists locally. Run: git tag -d ${VERSION}"
+  exit 1
+fi
+if git ls-remote --tags origin "refs/tags/${VERSION}" | grep -q "${VERSION}"; then
+  echo "Error: tag '${VERSION}' already exists on remote. Run: git push origin --delete refs/tags/${VERSION}"
+  exit 1
+fi
+
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 DATE=$(date +%Y-%m-%d)
 
-BODY=$(bash "$(dirname "$0")/gen_changelog.sh" "$PREV_TAG" "$VERSION" "$REPO")
+BODY=$(bash "$(dirname "$0")/gen_changelog.sh" "$PREV_TAG" HEAD "$REPO" "$VERSION")
 NEW_SECTION="## [${VERSION}] - ${DATE}\n\n${BODY}\n---\n\n"
 
 if [ -f CHANGELOG.md ]; then

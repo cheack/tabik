@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# Usage: gen_changelog.sh <from_tag> <to_tag> [repo]
-# from_tag can be empty — then includes all commits up to to_tag
+# Usage: gen_changelog.sh <from_tag> <to_ref> [repo] [display_to_tag]
+# to_ref   — git ref used for log (e.g. HEAD); must exist
+# display_to_tag — tag name used in the Full Changelog URL (defaults to to_ref)
 set -euo pipefail
 
 FROM_TAG="${1:-}"
-TO_TAG="${2:-HEAD}"
+TO_REF="${2:-HEAD}"
 REPO="${3:-}"
+DISPLAY_TO="${4:-$TO_REF}"
 
 if [ -z "$FROM_TAG" ]; then
-  COMMITS=$(git log --pretty=format:"%s" "$TO_TAG")
+  COMMITS=$(git log --pretty=format:"%s" "$TO_REF")
 else
-  COMMITS=$(git log --pretty=format:"%s" "${FROM_TAG}..${TO_TAG}")
+  COMMITS=$(git log --pretty=format:"%s" "${FROM_TAG}..${TO_REF}")
 fi
 
 FEATURES=""
@@ -33,7 +35,7 @@ BODY=""
 [ -n "$IMPROVEMENTS" ] && BODY="${BODY}### Improvements\n${IMPROVEMENTS}\n"
 
 if [ -n "$FROM_TAG" ] && [ -n "$REPO" ]; then
-  BODY="${BODY}**Full Changelog**: https://github.com/${REPO}/compare/${FROM_TAG}...${TO_TAG}\n"
+  BODY="${BODY}**Full Changelog**: https://github.com/${REPO}/compare/${FROM_TAG}...${DISPLAY_TO}\n"
 fi
 
 printf "%b" "$BODY"

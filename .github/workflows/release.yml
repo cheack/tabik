@@ -70,7 +70,7 @@ jobs:
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           {
             echo "CHANGELOG<<EOF"
-            bash scripts/gen_changelog.sh "$PREV_TAG" HEAD "${{ github.repository }}"
+            bash scripts/gen_changelog.sh "$PREV_TAG" HEAD "${{ github.repository }}" "${GITHUB_REF_NAME}"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
