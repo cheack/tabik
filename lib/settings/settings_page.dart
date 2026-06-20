@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_selector/file_selector.dart';
@@ -149,7 +150,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     List<CategoryConfig> imported;
     try {
-      imported = CategoryConfig.decodeList(await file.readAsString());
+      final bytes = await file.readAsBytes();
+      imported = CategoryConfig.decodeList(utf8.decode(bytes));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(
