@@ -138,13 +138,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future<void> _loadCategories() async {
     final cats = await _storage.loadCategories();
-    _applyCategories(cats, categoryIndex: 0);
+    final (catIdx, siteIdx) = await _storage.loadLastIndices();
+    _applyCategories(cats, categoryIndex: catIdx, siteIndex: siteIdx);
     _checkPendingShare();
   }
 
   Future<void> _saveCategories() => _storage.saveCategories(_categories);
 
-  void _applyCategories(List<CategoryConfig> cats, {int categoryIndex = 0}) {
+  Future<void> _saveLastIndices() =>
+      _storage.saveLastIndices(_categoryIndex, _siteIndex);
+
+  void _applyCategories(
+    List<CategoryConfig> cats, {
+    int categoryIndex = 0,
+    int siteIndex = 0,
+  }) {
     setState(() {
       _categories = cats;
       _categoriesLoaded = true;
@@ -153,7 +161,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           : categoryIndex.clamp(0, cats.length - 1);
       _siteIndex = 0;
     });
-    _buildControllers();
+    _buildControllers(siteIndex: siteIndex);
   }
 
   WebViewController _createController(String url, int index) {
@@ -230,6 +238,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _siteIndex = 0;
     });
     _buildControllers();
+    _saveLastIndices();
   }
 
   Uri _parseUrl(String url) {
@@ -572,6 +581,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             _refresh();
           } else {
             setState(() => _siteIndex = i);
+            _saveLastIndices();
           }
         },
         onLongPress: (i, pos) => _showSiteActions(i, pos),
