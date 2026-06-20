@@ -326,7 +326,7 @@ class _SitesPageState extends State<_SitesPage> {
               child: OutlinedButton.icon(
                 onPressed: () => _showEditDialog(),
                 icon: const Icon(Icons.add),
-                label: const Text('Добавить вкладку'),
+                label: const Text('Добавить сайт'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.primary,
                   side: BorderSide(

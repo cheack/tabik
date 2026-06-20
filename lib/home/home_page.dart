@@ -458,7 +458,7 @@ class _HomePageState extends State<HomePage> {
                   addSiteOnOpen: true,
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Добавить вкладку'),
+                label: const Text('Добавить сайт'),
               ),
               if (_categories.length > 1) ...[
                 const SizedBox(height: 8),
