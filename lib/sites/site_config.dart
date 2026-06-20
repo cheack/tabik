@@ -94,12 +94,14 @@ class SiteConfig {
   final String url;
   final IconData icon;
   final String? faviconUrl;
+  final bool useAutoIcon;
 
   const SiteConfig({
     required this.label,
     required this.url,
     required this.icon,
     this.faviconUrl,
+    this.useAutoIcon = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -107,14 +109,20 @@ class SiteConfig {
     'url': url,
     'iconIndex': iconToIndex(icon),
     if (faviconUrl != null) 'faviconUrl': faviconUrl,
+    'useAutoIcon': useAutoIcon,
   };
 
-  factory SiteConfig.fromJson(Map<String, dynamic> json) => SiteConfig(
-    label: json['label'] as String,
-    url: json['url'] as String,
-    icon: iconByIndex(json['iconIndex'] as int? ?? 0),
-    faviconUrl: json['faviconUrl'] as String?,
-  );
+  factory SiteConfig.fromJson(Map<String, dynamic> json) {
+    final rawFavicon = json['faviconUrl'] as String?;
+    final faviconUrl = (rawFavicon?.isEmpty ?? true) ? null : rawFavicon;
+    return SiteConfig(
+      label: json['label'] as String,
+      url: json['url'] as String,
+      icon: iconByIndex(json['iconIndex'] as int? ?? 0),
+      faviconUrl: faviconUrl,
+      useAutoIcon: json['useAutoIcon'] as bool? ?? (rawFavicon != null),
+    );
+  }
 }
 
 class CategoryConfig {

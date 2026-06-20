@@ -74,16 +74,16 @@ class SiteIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = site.faviconUrl;
-    if (url != null && url.isNotEmpty) {
-      return Image.network(
-        url,
-        width: size,
-        height: size,
-        errorBuilder: (_, e, s) => Icon(Icons.language, size: size),
-      );
-    }
-    if (url != null && url.isEmpty) {
+    if (site.useAutoIcon) {
+      final url = site.faviconUrl;
+      if (url != null) {
+        return Image.network(
+          url,
+          width: size,
+          height: size,
+          errorBuilder: (_, e, s) => Icon(Icons.language, size: size),
+        );
+      }
       return Icon(Icons.language, size: size);
     }
     return Icon(site.icon, size: size);

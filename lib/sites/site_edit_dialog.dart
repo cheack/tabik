@@ -14,8 +14,9 @@ Future<SiteConfig?> showSiteEditDialog(
   );
   IconData selectedIcon = existing?.icon ?? allIcons.first;
   String? faviconUrl = existing?.faviconUrl;
-  bool useFavicon = existing?.faviconUrl != null;
+  bool useFavicon = existing?.useAutoIcon ?? false;
   bool faviconLoading = false;
+  bool initialFetchDone = false;
   Timer? debounce;
 
   void fetchFavicon(String url, void Function(void Function()) setDialogState) {
@@ -34,10 +35,30 @@ Future<SiteConfig?> showSiteEditDialog(
     });
   }
 
+  void fetchFaviconIfNeeded(
+    String url,
+    void Function(void Function()) setDialogState,
+  ) {
+    if (faviconUrl != null || url.isEmpty) return;
+    setDialogState(() => faviconLoading = true);
+    resolveFavicon(url).then((resolved) {
+      setDialogState(() {
+        faviconUrl = resolved;
+        faviconLoading = false;
+      });
+    });
+  }
+
   return showDialog<SiteConfig>(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialogState) {
+        if (!initialFetchDone) {
+          initialFetchDone = true;
+          Future.microtask(
+            () => fetchFaviconIfNeeded(urlCtrl.text, setDialogState),
+          );
+        }
         final primary = Theme.of(ctx).colorScheme.primary;
 
         Widget currentIconWidget() {
@@ -140,7 +161,7 @@ Future<SiteConfig?> showSiteEditDialog(
                                               ),
                                       ),
                                       const SizedBox(width: 12),
-                                      const Text('Авто'),
+                                      const Text('Иконка сайта'),
                                       if (useFavicon) ...[
                                         const SizedBox(width: 8),
                                         Icon(
@@ -254,7 +275,8 @@ Future<SiteConfig?> showSiteEditDialog(
                     label: label,
                     url: url,
                     icon: selectedIcon,
-                    faviconUrl: useFavicon ? (faviconUrl ?? '') : null,
+                    faviconUrl: faviconUrl,
+                    useAutoIcon: useFavicon,
                   ),
                 );
               },
