@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.2] - 2026-06-20
+
+### What's New
+- restore last category and tab on app startup
+- add import/export of category settings
+
+### Bug Fixes
+- fix blank WebView screen after back navigation on Android
+
+**Full Changelog**: https://github.com/cheack/tabik/compare/1.0.1...1.0.2
+---
+
 ## [1.0.1] - 2026-06-20
 
 ### What's New
